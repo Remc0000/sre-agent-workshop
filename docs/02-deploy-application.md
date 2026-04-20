@@ -8,7 +8,7 @@ You've got the infrastructure running. Now let's deploy the workshop web app to 
 
 **Quick tech summary:**
 
-- **Runtime:** Node.js/Express running in a container (image pre-published to GitHub Packages — no build needed)
+- **Runtime:** Node.js/Express running in a container (image publicly published to GitHub Packages — no build needed, no authentication required to pull)
 - **Three endpoints:**
   - `GET /` — Landing page showing connection status and pod info
   - `GET /health` — Health check (used by Kubernetes liveness/readiness probes)
@@ -131,9 +131,13 @@ This usually means the cluster nodes don't have enough capacity. Check that Modu
 
 **ImagePullBackOff error:**
 ```bash
-kubectl logs -n workshop <pod-name>
+kubectl describe pod -n workshop <pod-name>
+# Look for the "Events" section — it will show the exact image URL and pull error
 ```
-The workflow pulls from `ghcr.io/OWNER/sre-agent-workshop:latest`. Verify the image is published and the OWNER placeholder was correctly substituted in the deployment.
+The workflow pulls from `ghcr.io/<owner>/sre-agent-workshop/app:latest`. The image is publicly available — no authentication is needed. Common causes:
+- The `OWNER` placeholder wasn't substituted (check the image URL in the pod events)
+- The image hasn't been published yet for your fork — run the **Publish Container Image** workflow first (push any change to `src/` on main, or run it manually)
+- A `latest-broken` tag exists for the fault-injection scenario in Module 5 — make sure you're using `latest` for initial deployment
 
 **`/items` returns 500 with auth error:**
 ```bash

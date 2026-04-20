@@ -23,10 +23,12 @@ The workflow deploys the following Azure resources to your subscription. All res
 | Alert Rule | `{workloadName}-container-restarts` | Monitors container restart count; triggers incident response in Module 4 |
 
 **Cluster Configuration:**
-- **Nodes:** 2× Standard_DS2_v2 VMs (Linux system node pool)
-- **Kubernetes version:** 1.30
+- **Nodes:** 2× Standard_D2ads_v6 VMs (Linux system node pool)
+- **Kubernetes version:** 1.34
 - **OIDC Issuer:** Enabled (required for workload identity)
 - **Workload Identity:** Enabled (secure pod auth without storing secrets)
+
+> **⚠️ VM Size Note:** The default VM size (`Standard_D2ads_v6`) may not be available in every subscription or region. If the deployment fails with a "VM size not allowed" error, check the error message for a list of available sizes and update `infra/bicep/modules/aks.bicep` (the `vmSize` property) accordingly. Any 2-vCPU general-purpose VM from the allowed list will work.
 
 ## Run the Deployment
 
@@ -249,9 +251,10 @@ Download the cluster credentials so `kubectl` can communicate with your cluster:
 ```bash
 az aks get-credentials \
   --resource-group rg-srelab \
-  --name srelab-aks \
-  --overwrite-existing
+  --name srelab-aks
 ```
+
+> **⚠️ Existing kubectl users:** If you already use `kubectl` with other clusters, this command adds a new context to your kubeconfig and sets it as the current context. Your existing cluster configurations are preserved — you can switch back with `kubectl config use-context <your-old-context>`.
 
 ### 5. Verify kubectl Works
 
@@ -420,7 +423,7 @@ These regions are tested and supported by the workshop. Retry the workflow with 
 **Solution:**
 1. Re-run the credential fetch:
    ```bash
-   az aks get-credentials --resource-group rg-srelab --name srelab-aks --overwrite-existing
+   az aks get-credentials --resource-group rg-srelab --name srelab-aks
    ```
 2. Verify the kubeconfig context:
    ```bash

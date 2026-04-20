@@ -35,8 +35,7 @@ jobs:
         run: |
           az aks get-credentials \
             --resource-group "rg-${{ env.WORKLOAD }}" \
-            --name "${{ env.WORKLOAD }}-aks" \
-            --overwrite-existing
+            --name "${{ env.WORKLOAD }}-aks"
 
       - name: Fetch deployment values from Azure
         id: values

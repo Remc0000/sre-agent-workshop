@@ -25,8 +25,8 @@ spec:
       serviceAccountName: workshop-app
       containers:
         - name: web-app
-          # Container image published to GitHub Packages by the maintainer.
-          # Attendees pull this public image — no build required.
+          # Container image publicly published to GitHub Packages.
+          # Attendees pull this public image — no build or auth required.
           image: ghcr.io/OWNER/sre-agent-workshop/app:latest
           ports:
             - containerPort: 3000
