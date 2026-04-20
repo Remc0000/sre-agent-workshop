@@ -80,19 +80,14 @@ For this workshop, the agent will read:
 
 When we intentionally break the app in Module 5 by removing a role assignment from the Bicep code, the agent will identify that specific commit as the culprit.
 
-## Connect Logs
+## Logs (Optional — Skip for This Workshop)
 
-The **Logs** card (tagged "Recommended" and "Best with code") connects the agent to your Log Analytics workspace — this is where AKS container logs, pod events, and application errors are stored.
+The **Logs** card on the setup page supports connecting additional log sources like Azure Data Explorer or Azure DevOps AI Search. We didn't provision either of these, so **skip this card** — the agent already has log access through two other channels:
 
-1. Find the **Logs** card on the setup page
-2. Click the **+** button
-3. Select your Log Analytics workspace: **`srelab-law`** (deployed in Module 1)
-4. Click **Add**
-5. Wait for the connection to verify
+- **Application Insights** (`srelab-ai`) — configured during agent creation, provides application telemetry
+- **Azure Resources** (`rg-srelab`) — configured in the next step, gives the agent Reader access to the Log Analytics workspace (`srelab-law`) where AKS container logs, pod events, and Kubernetes errors are stored
 
-### Why This Matters
-
-Application Insights (configured during agent creation) gives the agent application-level telemetry. The Log Analytics workspace gives it **infrastructure-level logs** — container stdout/stderr, Kubernetes events, and the raw data behind Azure Monitor alerts. When the app breaks in Module 5, the agent will query these logs to find the actual error messages (e.g., `DefaultAzureCredential` failures, 403 responses from CosmosDB) and correlate them with code changes.
+Between these two, the agent has full visibility into both application-level and infrastructure-level logs. No additional configuration needed.
 
 ## Grant Azure Resource Access
 
