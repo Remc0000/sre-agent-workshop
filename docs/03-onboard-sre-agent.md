@@ -33,6 +33,11 @@ The wizard will ask for the following:
 - **Agent name:** Enter something memorable, like `srelab-agent` or `workshop-agent` — this name appears in the portal and in incident conversations
 - **Region:** Select the same region as your infrastructure (East US 2, Sweden Central, or Australia East)
 - **Model provider:** Choose **Anthropic** (recommended for this workshop) or Azure OpenAI if you prefer
+- **Application Insights:** Select **Use existing**, then:
+  - **Subscription:** Your workshop subscription (`base_subscription`)
+  - **Application Insights name:** `srelab-ai` (the instance deployed by Module 1)
+  
+  This connects the SRE Agent to the same Application Insights instance that monitors your AKS cluster and web app, giving it direct access to application telemetry, error traces, and performance data.
 
 ### Step 3: Review and Deploy
 
