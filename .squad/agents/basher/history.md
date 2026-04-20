@@ -97,11 +97,13 @@
 
 **Completed work:**
 - `docs/01-deploy-infrastructure.md` — Module 1 guide covering infrastructure provisioning via GitHub Actions (~30 min)
+- **2026-04-12 (updated):** Restructured deployment section to offer two options: Option A (GitHub Actions, recommended) and Option B (Local CLI)
 
 **Module 1 structure and key content:**
 - "What Gets Deployed" table sourced directly from main.bicep: 8 resources (AKS, CosmosDB, Log Analytics, Application Insights, UAMI, Federated Credential, role assignment, alert)
 - Cluster configuration details: 2× Standard_DS2_v2 nodes, Kubernetes 1.30, OIDC issuer enabled, workload identity enabled
-- Step-by-step workflow trigger: navigate to Actions → select workflow → configure location/workloadName inputs → run
+- **Option A (GitHub Actions):** Step-by-step workflow trigger: navigate to Actions → select workflow → configure location/workloadName inputs → run (10–15 min)
+- **Option B (Local CLI):** Prerequisites (az CLI + jq), environment variables, 5-step process: create resource group → deploy Bicep → extract outputs via jq → display summary → save UAMI Client ID
 - Deployment timeline: 10–15 minutes; includes expected final output with resource names and IDs
 - Comprehensive verification section: 7 sequential az commands to validate all resources (cluster status, nodes, CosmosDB, managed identity)
 - Expected outputs specified for each verification command (e.g., 2 nodes in Ready state, OIDC issuer enabled)
@@ -110,6 +112,7 @@
 - Troubleshooting section: 4 common failure modes (AuthorizationFailed, region not supported, quota exceeded, kubectl connection issues) with diagnosis and resolution steps
 - Checkpoint verification: quick summary checklist of 6 items to confirm all resources created and nodes ready
 - Cost reminder: explicitly states $0.40–0.50/hr while running and references Module 7 cleanup to stop costs
+- **Note added:** Local deployment useful for testing/development; GitHub Actions recommended for full workshop (push trigger required for Module 5 fault injection)
 
 **Key design decisions:**
 - Sourced all resource names, region options, and node configuration from actual Bicep files (main.bicep, aks.bicep, monitoring.bicep) for accuracy
@@ -119,6 +122,8 @@
 - Troubleshooting solutions are self-service oriented (no "contact support") to maintain participant autonomy
 - Verification section structured as sequential steps (get credentials → verify nodes → verify CosmosDB) to guide participants through the happy path
 - Cost transparency: embedded cost reminder both in body and at end to reinforce budget awareness
+- **Local CLI option design:** Mirrors GitHub Actions workflow commands exactly (same az commands, parameters, outputs) so both paths deploy identical infrastructure; uses jq to parse outputs for consistency with workflow
+- **Clear trade-off messaging:** Explained that GitHub Actions is recommended due to push trigger on infra/** → enables Module 5 auto-deployment; local deployment requires manual re-run for Module 5 scenario
 
 **Key file paths:**
 - `docs/01-deploy-infrastructure.md` — Module 1: Deploy Infrastructure (30 min); references infra/bicep/main.bicep, .github/workflows/deploy-infra.yml

@@ -1,0 +1,159 @@
+# Module 5: Break It! 💥 (~20 min)
+
+## Overview
+
+Time to introduce a realistic infrastructure fault. You'll remove a critical role assignment from the Bicep code that gives your app permission to access CosmosDB. When you deploy this change, the app will lose access to the database — causing 500 errors on the `/items` endpoint. This simulates a real-world scenario that operations teams encounter: a well-meaning engineer thinks they're cleaning up unused infrastructure and accidentally breaks production.
+
+## The Scenario
+
+> _A team member is reviewing the Bicep code during a cleanup initiative. They spot a role assignment on the CosmosDB account that they think might be leftover from an old project. No one is sure if it's needed, so they remove it, commit the change, and submit a PR. The code review looks good — the Bicep is syntactically valid. The PR gets merged. The `deploy-infra` workflow triggers automatically. The infrastructure update completes successfully._
+>
+> _Everything looks fine. The pods are running, health checks pass. But users start complaining that items aren't loading. The app is broken, and it happened silently._
+
+This is the scenario you're about to create — and then watch your SRE Agent detect, diagnose, and fix it.
+
+## Verify Current State
+
+Before you break anything, confirm the app is working:
+
+```bash
+# Set the IP again (if not already set)
+export APP_IP=$(kubectl get svc web-app -n workshop -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+# This should return 200
+curl http://$APP_IP/items
+
+# Expected output: [] or a list of items
+```
+
+Good? Let's break it.
+
+## Make the Change
+
+1. **Open** `infra/bicep/modules/identity.bicep` in your editor
+2. **Find the CosmosDB role assignment** — it's in the second half of the file. Look for this comment:
+   ```bicep
+   // WORKSHOP: This role assignment is critical — removing it will cause the app to fail (used in Module 5: Break It)
+   ```
+3. **Below that comment, you'll see the resource definition:**
+   ```bicep
+   resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-02-15-preview' = {
+     parent: cosmosAccount
+     name: guid(cosmosAccount.id, uami.id, '00000000-0000-0000-0000-000000000002')
+     properties: {
+       roleDefinitionId: '${cosmosAccount.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+       principalId: uami.properties.principalId
+       scope: cosmosAccount.id
+     }
+   }
+   ```
+4. **Delete or comment out the entire `cosmosRoleAssignment` resource block** — all 8 lines, from `resource cosmosRoleAssignment` through the closing `}`
+5. **Save the file**
+
+Your file now has the role assignment logic removed. The federated credential and the user-assigned managed identity still exist — but the UAMI no longer has permission to access CosmosDB.
+
+## Deploy the Fault
+
+```bash
+# Stage the change
+git add infra/bicep/modules/identity.bicep
+
+# Commit with a realistic message
+git commit -m "cleanup: remove unused CosmosDB role assignment"
+
+# Push to main (or merge if you used a branch)
+git push origin main
+```
+
+The `deploy-infra.yml` workflow will trigger automatically (it watches for changes to files in the `infra/**` path).
+
+1. **Go to GitHub** → your fork → **Actions** tab
+2. **Select the workflow run** for "Deploy Infra" that just started
+3. **Watch it complete** (~3–5 minutes)
+
+The deployment will **succeed**. The Bicep template is valid syntactically. Azure will happily remove the role assignment you told it to remove. No errors. No warnings. Just a silent infrastructure change.
+
+## Watch It Break
+
+While the Pods don't restart (no code changed), the app has lost its database access. Try this:
+
+```bash
+# Health check still passes (it doesn't verify database connectivity)
+curl http://$APP_IP/health
+
+# Returns 200: {"status":"healthy","timestamp":"..."}
+# Everything looks fine!
+```
+
+But now:
+
+```bash
+# The items endpoint fails
+curl http://$APP_IP/items
+
+# Returns 500 with an error message like:
+# {
+#   "error": "Failed to connect to CosmosDB: AuthorizationError: The managed identity does not have the required RBAC role assignment..."
+# }
+```
+
+**The app is broken.** Health checks are passing. Pods are running. But users can't get their data.
+
+## What's Happening Under the Hood
+
+Here's the sequence of events:
+
+```
+1. Bicep deployment removes cosmosRoleAssignment resource
+   ↓
+2. Azure deletes the role assignment from CosmosDB
+   ↓
+3. Pod still has:
+   - OIDC token from Kubernetes
+   - Federated credential linking K8s ServiceAccount to UAMI
+   - UAMI exists in Azure AD
+   - But no RBAC role assignment on CosmosDB
+   ↓
+4. App makes request to CosmosDB:
+   K8s OIDC token → UAMI token → CosmosDB
+   ↓
+5. CosmosDB receives the UAMI token but checks RBAC:
+   "Hmm, this identity is valid, but I don't have a role assignment for it"
+   ↓
+6. CosmosDB rejects the request: 403 Forbidden
+   ↓
+7. App catches the error and returns 500 to the client
+   ↓
+8. Azure Monitor detects the spike in HTTP 500 errors
+   ↓
+9. Alert fires → SRE Agent is triggered
+```
+
+## What Happens Next
+
+Your Azure Monitor alert will detect the spike in failed requests. The SRE Agent, which you configured in Module 4, will:
+
+1. **Receive the alert** from Azure Monitor
+2. **Query the logs** to find the error details
+3. **Check pod logs** to see the authorization failures
+4. **Correlate with recent deployments** (find the Bicep change you just made)
+5. **Read the Bicep code** to understand what changed
+6. **Identify the root cause:** missing role assignment
+7. **Propose a fix** and open a PR on your fork
+8. **If you configured it for Autonomous mode,** the agent will merge the PR and trigger a new deployment
+
+You don't need to fix this yourself. **Don't troubleshoot.** Don't manually restore the role assignment. Let the SRE Agent do its job. Head to Module 6 to watch it work.
+
+## Optional: Add More Narrative
+
+If you're running this workshop with a group, this is a great moment for storytelling:
+
+- **"Notice how the health checks still pass?"** — This is why comprehensive monitoring is hard. Synthetic checks (like health endpoints) aren't enough; you need deep observability into your actual business flows.
+- **"In a real environment, this might have gone unnoticed for hours until customers complained."** — The SRE Agent's value: it detects these silent failures automatically.
+- **"The Bicep change was valid. There were no syntax errors. The infrastructure deployed successfully."** — Infrastructure-as-code doesn't catch semantic errors, only syntax. You need observability and automation to catch these.
+
+## Next Step
+
+→ **Module 6: Watch the SRE Agent Work**
+
+In the next module, you'll navigate to the SRE Agent portal and observe its full investigation and remediation flow. You'll see it correlate logs, read your code, and open a PR with the fix. This is where the magic happens.
