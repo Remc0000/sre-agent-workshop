@@ -21,6 +21,7 @@ The workflow deploys the following Azure resources to your subscription. All res
 | Federated Identity Credential | Automatic | Maps Kubernetes ServiceAccount → Azure managed identity |
 | CosmosDB Role Assignment | Automatic | Grants the managed identity permission to read database data |
 | Alert Rule | `{workloadName}-container-restarts` | Monitors container restart count; triggers incident response in Module 4 |
+| Alert Rule | `{workloadName}-http-500-errors` | Monitors HTTP 500 errors in container logs; triggers incident response in Module 4 |
 
 **Cluster Configuration:**
 - **Nodes:** 2× Standard_D2ads_v6 VMs (Linux system node pool)

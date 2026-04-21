@@ -136,6 +136,8 @@ The agent saves everything you tell it during onboarding to persistent knowledge
 - **team.md** — Your team's priorities and operational concerns
 - **debugging.md** — Common failure modes and how to fix them
 
+> **⚠️ Important:** Complete the Team Onboarding conversation before moving to Module 4. The agent's state shows as `BuildingKnowledgeGraph` until onboarding is finished. While in this state, the agent **will not poll for Azure Monitor alerts**. You can check the agent's state in the portal — it should transition to `Running` once onboarding is complete.
+
 **Tip:** The more specific and actionable your onboarding information, the faster the agent will diagnose issues in Module 6. Your debugging hint about role assignments will directly help when the agent investigates the fault we introduce in Module 5.
 
 ## Verify Setup

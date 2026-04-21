@@ -6,30 +6,23 @@ Set up Azure Monitor as your incident platform and create a response plan so the
 
 ## Prerequisites
 
-Before configuring incident response, ensure the SRE Agent's managed identity has the required RBAC roles. The agent needs **Reader** access to see your alerts:
+Before configuring incident response, ensure the SRE Agent's managed identity has the required RBAC roles. The agent needs **Reader** access to see your alerts. If you created the SRE Agent through the portal with the recommended setup, these roles are typically already assigned.
+
+You can verify with:
 
 ```bash
-# Grant Reader to the SRE Agent's managed identity (if not already assigned)
-# Find the agent's app ID first:
-az ad sp list --display-name "srelab-agent" --query "[?contains(displayName, 'onfcq')].appId" -o tsv
+# Find the agent's managed identity
+AGENT_UAMI=$(az resource list --resource-group rg-srelab \
+  --resource-type "Microsoft.ManagedIdentity/userAssignedIdentities" \
+  --query "[?contains(name, 'agent')].name" -o tsv)
 
-# Then grant (replace APP_ID with the value above, or use the principal ID from the portal):
-az role assignment create \
-  --assignee <APP_ID> \
-  --role "Reader" \
-  --scope /subscriptions/9bc0bdaa-0a20-4570-9cae-ef826f5c23a7/resourceGroups/rg-srelab
+# List its role assignments
+PRINCIPAL_ID=$(az identity show --name "$AGENT_UAMI" --resource-group rg-srelab --query principalId -o tsv)
+az role assignment list --assignee "$PRINCIPAL_ID" --all \
+  --query "[].{role:roleDefinitionName, scope:scope}" -o table
 ```
 
-> **Note:** If you created the SRE Agent through the portal with the recommended setup, these roles are typically already assigned. You can verify with:
-> ```bash
-> AGENT_UAMI=$(az resource list --resource-group rg-srelab \
->   --resource-type "Microsoft.ManagedIdentity/userAssignedIdentities" \
->   --query "[?contains(name, 'agent') && contains(name, 'onfcq')].name" -o tsv)
-> PRINCIPAL_ID=$(az identity show --name "$AGENT_UAMI" --resource-group rg-srelab --query principalId -o tsv)
-> az role assignment list --assignee "$PRINCIPAL_ID" --all \
->   --query "[].{role:roleDefinitionName, scope:scope}" -o table
-> ```
-> Look for **Reader** and **Monitoring Contributor** on `rg-srelab`.
+Look for **Reader** and **Monitoring Contributor** on `rg-srelab`. If missing, the SRE Agent portal will tell you what to grant when you connect Azure Monitor.
 
 ## Connect Azure Monitor
 

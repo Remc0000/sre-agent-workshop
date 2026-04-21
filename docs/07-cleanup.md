@@ -83,11 +83,11 @@ az ad sp delete --id {APP_ID}
 
 ### Remove GitHub Actions Secrets
 
-Your fork still has the `AZURE_CREDENTIALS` and `AZURE_SUBSCRIPTION_ID` secrets configured. If you no longer need them, remove them:
+Your fork still has the `AZURE_CREDENTIALS` secret configured. If you no longer need it, remove it:
 
 1. Go to your fork on GitHub (https://github.com/{YOUR_USERNAME}/sre-agent-workshop)
 2. Click **Settings** → **Secrets and variables** → **Actions**
-3. For each secret (`AZURE_CREDENTIALS`, `AZURE_SUBSCRIPTION_ID`), click the trash icon to delete
+3. Click the trash icon next to `AZURE_CREDENTIALS` to delete it
 
 > **Why:** Reduces the attack surface if your fork is compromised. An attacker with access to these secrets could deploy resources to your subscription.
 

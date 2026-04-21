@@ -38,12 +38,11 @@ Good? Let's break it.
 3. **Below that comment, you'll see the resource definition:**
    ```bicep
    resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-02-15-preview' = {
-     parent: cosmosAccount
-     name: guid(cosmosAccount.id, uami.id, '00000000-0000-0000-0000-000000000002')
+     name: '${cosmosDbAccountName}/${guid(cosmosAccountId, uami.id, '00000000-0000-0000-0000-000000000002')}'
      properties: {
-       roleDefinitionId: '${cosmosAccount.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+       roleDefinitionId: '${cosmosAccountId}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
        principalId: uami.properties.principalId
-       scope: cosmosAccount.id
+       scope: cosmosAccountId
      }
    }
    ```
@@ -119,7 +118,7 @@ curl http://$APP_IP/items
 
 # Returns 500 with an error message like:
 # {
-#   "error": "Failed to connect to CosmosDB: AuthorizationError: The managed identity does not have the required RBAC role assignment..."
+#   "error": "Failed to connect to CosmosDB: Request is blocked because principal [...] does not have the required RBAC permissions..."
 # }
 ```
 
