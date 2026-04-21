@@ -48,14 +48,22 @@ resource federatedCredential 'Microsoft.ManagedIdentity/userAssignedIdentities/f
 // CosmosDB role assignment for the UAMI
 // Uses the built-in "Cosmos DB Built-in Data Contributor" role
 // so the app can read and write documents.
+//
+// NOTE: Uses inline resource ID construction instead of an `existing`
+// reference to avoid ARM deployment caching issues where the role
+// assignment could be silently skipped on re-deployment.
 // ──────────────────────────────────────────────
-
-// Reference the existing CosmosDB account to create the SQL role assignment
-resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' existing = {
-  name: cosmosDbAccountName
-}
+var cosmosAccountId = resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosDbAccountName)
 
 // WORKSHOP: This role assignment is critical — removing it will cause the app to fail (used in Module 5: Break It)
+resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2024-02-15-preview' = {
+  name: '${cosmosDbAccountName}/${guid(cosmosAccountId, uami.id, '00000000-0000-0000-0000-000000000002')}'
+  properties: {
+    roleDefinitionId: '${cosmosAccountId}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
+    principalId: uami.properties.principalId
+    scope: cosmosAccountId
+  }
+}
 
 // ── Outputs ──────────────────────────────────
 @description('User-Assigned Managed Identity client ID')
