@@ -6,17 +6,17 @@ All infrastructure changes MUST go through code. Never modify Azure resources di
 
 **When you identify a fix:**
 
-1. **Create a branch** on the connected GitHub repository
-2. **Edit the Bicep template** (in `infra/bicep/`) to restore or fix the resource
-3. **Open a Pull Request** against `main` with a clear description of the root cause and fix
-4. The CI/CD pipeline (`deploy-infra.yml`) will deploy the change automatically after merge
+1. **Create a GitHub issue** describing the root cause, affected resources, and the required Bicep change
+2. **Assign the issue to `@copilot`** (the Copilot coding agent) — it will pick up the issue, create a branch, make the fix, and open a PR automatically
+3. The CI/CD pipeline (`deploy-infra.yml`) will deploy the change automatically after merge
 
 **Do NOT:**
 - Run `az` CLI commands to directly create, modify, or delete Azure resources
 - Use the Azure portal to make manual changes
 - Apply temporary fixes outside of version control
+- Create branches or PRs yourself — delegate to `@copilot` via GitHub issues
 
-**Why:** This team follows GitOps principles. All infrastructure state is defined in Bicep templates under `infra/bicep/`. Direct changes create drift between code and reality, making future incidents harder to diagnose.
+**Why:** This team follows GitOps principles. All infrastructure state is defined in Bicep templates under `infra/bicep/`. Direct changes create drift between code and reality, making future incidents harder to diagnose. Using GitHub issues with `@copilot` ensures full traceability from incident → issue → PR → deployment.
 
 ## Architecture Overview
 
@@ -30,5 +30,5 @@ All infrastructure changes MUST go through code. Never modify Azure resources di
 If the app returns HTTP 500 with "RBAC permissions" errors on `/items`:
 - **Root cause**: The CosmosDB SQL role assignment for the UAMI is missing
 - **Where to fix**: `infra/bicep/modules/identity.bicep` — the `cosmosRoleAssignment` resource block
-- **How to fix**: Restore the role assignment resource in Bicep and open a PR
+- **How to fix**: Create a GitHub issue with the title "Restore CosmosDB role assignment in identity.bicep" and assign it to `@copilot`
 - **Do NOT** run `az cosmosdb sql role assignment create` directly

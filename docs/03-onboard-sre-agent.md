@@ -123,11 +123,22 @@ The SRE Agent can ingest runbooks and operational guidelines that shape how it r
 ### What This Does
 
 The operational guidelines tell the agent to **always fix through code** — never make direct Azure changes. When it identifies a root cause, it will:
-- Create a branch on your GitHub repository
-- Edit the Bicep template to fix the issue
-- Open a Pull Request with a root cause analysis
+- Create a **GitHub issue** describing the root cause and required fix
+- Assign the issue to **`@copilot`** (the Copilot coding agent)
+- Copilot picks up the issue, creates a branch, makes the Bicep fix, and opens a PR
 
-Without this file, the agent might try to fix issues by running `az` CLI commands directly, which bypasses your infrastructure-as-code workflow.
+This creates a full audit trail: incident → investigation → issue → PR → deployment.
+
+## Enable the GitHub Tool
+
+For the SRE Agent to create GitHub issues and assign them to `@copilot`, it needs the GitHub tool enabled.
+
+1. In the SRE Agent portal, go to **Builder** → **Tools** in the left sidebar
+2. Find the **DevOps** category in the Built-in Tools section
+3. Locate the **GitHub** tool and **enable** it (toggle it on)
+4. The agent may ask you to authenticate with GitHub — follow the prompts to connect your GitHub account
+
+> **Why this matters:** Without the GitHub tool, the agent can investigate and diagnose issues but cannot create issues or PRs on your repository. With it enabled, the full remediation loop works: SRE Agent detects fault → creates issue → `@copilot` fixes code → CI/CD deploys.
 
 ## Team Onboarding
 
