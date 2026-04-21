@@ -111,6 +111,24 @@ With access to your resource group, the agent can:
 - Inspect **resource configurations** (Bicep deployment history, role assignments, secrets)
 - Correlate **deployment changes** with performance degradation
 
+## Upload Knowledge Files
+
+The SRE Agent can ingest runbooks and operational guidelines that shape how it responds to incidents. Upload the operational guidelines file included in this repository:
+
+1. On the setup page, find the **Knowledge files** card
+2. Click the **+** button to add a knowledge document
+3. Upload the file `docs/knowledge/operational-guidelines.md` from your repository
+4. Wait for the green checkmark
+
+### What This Does
+
+The operational guidelines tell the agent to **always fix through code** — never make direct Azure changes. When it identifies a root cause, it will:
+- Create a branch on your GitHub repository
+- Edit the Bicep template to fix the issue
+- Open a Pull Request with a root cause analysis
+
+Without this file, the agent might try to fix issues by running `az` CLI commands directly, which bypasses your infrastructure-as-code workflow.
+
 ## Team Onboarding
 
 After you click **Done and go to agent**, the agent opens a Team Onboarding conversation. This is where you share knowledge about your environment.
