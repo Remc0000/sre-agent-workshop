@@ -121,15 +121,19 @@ Keep this terminal open — you'll use `$SUBSCRIPTION_ID` in the next step.
 ### Create a Service Principal
 
 ```bash
+SP_END_DATE=$(date -d "+30 days" +%Y-%m-%d)
+
 az ad sp create-for-rbac \
   --name "sre-workshop-sp" \
   --role Contributor \
   --scopes /subscriptions/$SUBSCRIPTION_ID \
-  --years 0.08 \
+  --end-date "$SP_END_DATE" \
   --json-auth
 ```
 
-> **Security best practice:** The `--years 0.08` flag sets the credential to expire after ~30 days, which is compliant with most restrictive tenant policies. Always delete the service principal when done (see Module 7).
+> **Security best practice:** The `--end-date` flag sets the credential to expire after 30 days, which is compliant with most restrictive tenant policies. Always delete the service principal when done (see Module 7).
+>
+> **Windows (PowerShell):** Replace the first line with `$SP_END_DATE = (Get-Date).AddDays(30).ToString("yyyy-MM-dd")`
 
 This command outputs a JSON block containing the service principal credentials. **Copy the entire JSON output** — you'll paste it into GitHub next.
 
