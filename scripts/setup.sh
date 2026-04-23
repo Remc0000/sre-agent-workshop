@@ -63,6 +63,34 @@ header "Supported Regions"
 echo "  The workshop supports: eastus2, swedencentral, australiaeast"
 echo "  Set your preferred region when running the deploy-infra workflow."
 
+# ── VM Size availability ─────────────────
+header "VM Size Availability"
+VM_SIZE="Standard_D2ads_v6"
+LOCATION="${LOCATION:-eastus2}"
+if az account show &>/dev/null; then
+  AVAILABLE=$(az vm list-sizes --location "$LOCATION" --query "[?name=='${VM_SIZE}'].name" -o tsv 2>/dev/null)
+  if [ -n "$AVAILABLE" ]; then
+    ok "${VM_SIZE} is available in ${LOCATION}"
+  else
+    fail "${VM_SIZE} is NOT available in ${LOCATION}"
+    echo ""
+    echo "  The default AKS node VM size (${VM_SIZE}) is not available in your"
+    echo "  subscription/region. You need to edit infra/bicep/modules/aks.bicep"
+    echo "  and change the 'vmSize' property to an available 2-vCPU size."
+    echo ""
+    echo "  Suggested alternatives (any 2-vCPU general-purpose VM will work):"
+    echo "    - Standard_D2s_v3"
+    echo "    - Standard_D2as_v5"
+    echo "    - Standard_D2s_v5"
+    echo "    - Standard_B2s"
+    echo ""
+    echo "  To see all available sizes in your region:"
+    echo "    az vm list-sizes --location ${LOCATION} --query \"[?numberOfCores==\`2\`].name\" -o table"
+  fi
+else
+  warn "Skipped — not logged in to Azure"
+fi
+
 # ── Summary ───────────────────────────────
 echo ""
 echo "========================================"
