@@ -125,11 +125,11 @@ az ad sp create-for-rbac \
   --name "sre-workshop-sp" \
   --role Contributor \
   --scopes /subscriptions/$SUBSCRIPTION_ID \
-  --years 1 \
+  --years 0.08 \
   --json-auth
 ```
 
-> **Security best practice:** The `--years 1` flag sets the credential to expire after 1 year. For a short-lived workshop, you could use `--years 0.01` (~4 days) instead. Always delete the service principal when done (see Module 7).
+> **Security best practice:** The `--years 0.08` flag sets the credential to expire after ~30 days, which is compliant with most restrictive tenant policies. Always delete the service principal when done (see Module 7).
 
 This command outputs a JSON block containing the service principal credentials. **Copy the entire JSON output** — you'll paste it into GitHub next.
 
