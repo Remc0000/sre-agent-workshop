@@ -112,22 +112,24 @@ GitHub Actions workflows in your fork need credentials to deploy infrastructure 
 
 ```bash
 az login
-az account show --query id -o tsv
+export SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+echo "Your subscription ID: $SUBSCRIPTION_ID"
 ```
 
-Save this ID — you'll need it in the next step.
+Keep this terminal open — you'll use `$SUBSCRIPTION_ID` in the next step.
 
 ### Create a Service Principal
-
-Replace `{SUBSCRIPTION_ID}` with the ID from above:
 
 ```bash
 az ad sp create-for-rbac \
   --name "sre-workshop-sp" \
   --role Contributor \
-  --scopes /subscriptions/{SUBSCRIPTION_ID} \
+  --scopes /subscriptions/$SUBSCRIPTION_ID \
+  --years 1 \
   --json-auth
 ```
+
+> **Security best practice:** The `--years 1` flag sets the credential to expire after 1 year. For a short-lived workshop, you could use `--years 0.01` (~4 days) instead. Always delete the service principal when done (see Module 7).
 
 This command outputs a JSON block containing the service principal credentials. **Copy the entire JSON output** — you'll paste it into GitHub next.
 
